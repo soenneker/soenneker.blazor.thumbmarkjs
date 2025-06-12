@@ -5,6 +5,8 @@
 # ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Blazor.Thumbmarkjs
 ### A Blazor interop library for the javascript fingerprinting library, [thumbmarkjs](https://github.com/thumbmarkjs/thumbmarkjs)
 
+[Demo](https://soenneker.github.io/soenneker.blazor.thumbmarkjs)
+
 ## Installation
 
 ```
