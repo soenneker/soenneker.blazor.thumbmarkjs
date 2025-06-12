@@ -1,0 +1,90 @@
+@using Microsoft.JSInterop
+@using Soenneker.Blazor.Thumbmarkjs.Abstract
+@using Microsoft.Extensions.Logging
+@using System.Threading
+@using System.Text.Json
+@using Soenneker.Blazor.Thumbmarkjs.Configuration
+@using Soenneker.Extensions.Task
+@using Soenneker.Extensions.ValueTask
+
+@inherits ComponentBase
+@implements IThumbmarkjs
+
+<div id="@ElementId" @attributes="Attributes" ></div>
+
+@code {
+
+    [Inject]
+    private IThumbmarkjsInterop ThumbmarkjsInterop { get; set; } = null!;
+
+    [Inject]
+    private ILogger<Thumbmarkjs> Logger { get; set; } = null!;
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object?>? Attributes { get; set; }
+
+    [Parameter]
+    public ThumbmarkjsOptions? Options { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnFingerprintGenerated { get; set; }
+
+    [Parameter]
+    public EventCallback<JsonElement> OnFingerprintDataGenerated { get; set; }
+
+    public string ElementId { get; } = $"thumbmarkjs-{Guid.NewGuid()}";
+    private readonly CancellationTokenSource CTs = new();
+    private DotNetObjectReference<Thumbmarkjs>? _dotNetReference;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetReference = DotNetObjectReference.Create(this);
+
+            bool useCdn = Options?.UseCdn ?? true;
+
+            await ThumbmarkjsInterop.Initialize(_dotNetReference, useCdn).NoSync();
+            await ThumbmarkjsInterop.CreateObserver(ElementId).NoSync();
+        }
+    }
+
+    [JSInvokable("OnFingerprintGenerated")]
+    public async Task OnFingerprintGeneratedJs(string fingerprint)
+    {
+        if (OnFingerprintGenerated.HasDelegate)
+            await OnFingerprintGenerated.InvokeAsync(fingerprint).NoSync();
+    }
+
+    [JSInvokable("OnFingerprintDataGenerated")]
+    public async Task OnFingerprintDataGeneratedJs(JsonElement jsonElement)
+    {
+        if (OnFingerprintDataGenerated.HasDelegate)
+            await OnFingerprintDataGenerated.InvokeAsync(jsonElement).NoSync();
+    }
+
+    public async ValueTask SetOptions(object options, CancellationToken cancellationToken = default)
+    {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(CTs.Token, cancellationToken);
+        await ThumbmarkjsInterop.SetOptions(ElementId, options, cts.Token).NoSync();
+    }
+
+    public async ValueTask<string?> GetFingerprint(CancellationToken cancellationToken = default)
+    {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(CTs.Token, cancellationToken);
+        return await ThumbmarkjsInterop.GetFingerprint(ElementId, cts.Token).NoSync();
+    }
+
+    public async ValueTask<JsonElement?> GetFingerprintData(CancellationToken cancellationToken = default)
+    {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(CTs.Token, cancellationToken);
+        return await ThumbmarkjsInterop.GetFingerprintData(ElementId, cts.Token).NoSync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _dotNetReference?.Dispose();
+        await CTs.CancelAsync();
+    }
+
+}
