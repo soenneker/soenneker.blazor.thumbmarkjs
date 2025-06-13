@@ -1,17 +1,16 @@
 @page "/"
 @using System.Text.Json
 @using Microsoft.Extensions.Logging
-@using Soenneker.Blazor.Thumbmarkjs.Configuration
+
 
 @inject ILogger<Index> Logger
 
-<PageTitle>Thumbmark.js Demo</PageTitle>
-
-<Thumbmarkjs @ref="_thumbmarkjs" OnFingerprintGenerated="OnFingerprintGenerated"></Thumbmarkjs>
-
 <div class="container mt-4">
-    <h1>Thumbmark.js Demo</h1>
-    <p class="lead">A demonstration of browser fingerprinting using Thumbmark.js</p>
+    <img src="https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png" />
+    <h1>Soenneker.Blazor.Thumbmarkjs demo</h1>
+    <p>This page demonstrates some of the uses of the Thumbmarkjs component.</p>
+
+    <Thumbmarkjs @ref="_thumbmarkjs" OnFingerprintGenerated="OnFingerprintGenerated"></Thumbmarkjs>
 
     <div class="row mt-4">
         <div class="col-md-6">
@@ -62,7 +61,7 @@
                     {
                         <div class="mb-3">
                             <label class="form-label">Raw Data:</label>
-                            <pre class="bg-light p-3 rounded"><code>@FingerprintData</code></pre>
+                            <MemoEdit Rows="5" @bind-Text=@FingerprintData />
                         </div>
                     }
                     <button class="btn btn-primary" @onclick="GetFingerprintData" disabled="@IsLoading">
@@ -80,60 +79,12 @@
             </div>
         </div>
     </div>
-
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Options</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Exclude Components:</label>
-                                <select class="form-select" @bind="SelectedExcludeComponents" multiple>
-                                    <option value="webgl">WebGL</option>
-                                    <option value="system.browser.version">Browser Version</option>
-                                    <option value="audio">Audio</option>
-                                    <option value="canvas">Canvas</option>
-                                </select>
-                                <div class="form-text">Select components to exclude from fingerprinting</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Timeout (ms):</label>
-                                <input type="number" class="form-control" @bind="Timeout" min="100" max="10000" step="100" />
-                                <div class="form-text">Component timeout in milliseconds</div>
-                            </div>
-                            <div class="mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" @bind="Logging" id="loggingCheck" />
-                                    <label class="form-check-label" for="loggingCheck">
-                                        Enable Logging
-                                    </label>
-                                </div>
-                                <div class="form-text">Enable anonymous 0.01% log sampling</div>
-                            </div>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" @onclick="ApplyOptions" disabled="@IsLoading">
-                        Apply Options
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 @code {
     private string? Fingerprint { get; set; }
     private string? FingerprintData { get; set; }
     private bool IsLoading { get; set; }
-    private string[] SelectedExcludeComponents { get; set; } = [];
-    private int Timeout { get; set; } = 1000;
-    private bool Logging { get; set; } = true;
 
     private Thumbmarkjs _thumbmarkjs;
 
@@ -163,27 +114,6 @@
             IsLoading = true;
             JsonElement? data = await _thumbmarkjs.GetFingerprintData();
             FingerprintData = data?.ToString();
-        }
-        finally
-        {
-            IsLoading = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task ApplyOptions()
-    {
-        try
-        {
-            IsLoading = true;
-            var options = new ThumbmarkjsOptions
-            {
-                Exclude = SelectedExcludeComponents,
-                Timeout = Timeout,
-                Logging = Logging
-            };
-
-            await _thumbmarkjs.SetOptions(options);
         }
         finally
         {
