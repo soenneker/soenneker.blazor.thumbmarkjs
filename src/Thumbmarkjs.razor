@@ -27,10 +27,10 @@
     public ThumbmarkjsOptions? Options { get; set; }
 
     [Parameter]
-    public EventCallback<string> OnFingerprintGenerated { get; set; }
+    public EventCallback<string> OnGenerated { get; set; }
 
     [Parameter]
-    public EventCallback<JsonElement> OnFingerprintDataGenerated { get; set; }
+    public EventCallback<JsonElement> OnDataGenerated { get; set; }
 
     public string ElementId { get; } = $"thumbmarkjs-{Guid.NewGuid()}";
     private readonly CancellationTokenSource CTs = new();
@@ -49,18 +49,18 @@
         }
     }
 
-    [JSInvokable("OnFingerprintGenerated")]
-    public async Task OnFingerprintGeneratedJs(string fingerprint)
+    [JSInvokable("OnGenerated")]
+    public async Task OnGeneratedJs(string thumbmark)
     {
-        if (OnFingerprintGenerated.HasDelegate)
-            await OnFingerprintGenerated.InvokeAsync(fingerprint).NoSync();
+        if (OnGenerated.HasDelegate)
+            await OnGenerated.InvokeAsync(thumbmark).NoSync();
     }
 
-    [JSInvokable("OnFingerprintDataGenerated")]
-    public async Task OnFingerprintDataGeneratedJs(JsonElement jsonElement)
+    [JSInvokable("OnDataGenerated")]
+    public async Task OnDataGeneratedJs(JsonElement jsonElement)
     {
-        if (OnFingerprintDataGenerated.HasDelegate)
-            await OnFingerprintDataGenerated.InvokeAsync(jsonElement).NoSync();
+        if (OnDataGenerated.HasDelegate)
+            await OnDataGenerated.InvokeAsync(jsonElement).NoSync();
     }
 
     public async ValueTask SetOptions(object options, CancellationToken cancellationToken = default)
@@ -69,16 +69,16 @@
         await ThumbmarkjsInterop.SetOptions(ElementId, options, cts.Token).NoSync();
     }
 
-    public async ValueTask<string?> GetFingerprint(CancellationToken cancellationToken = default)
+    public async ValueTask<string?> Get(CancellationToken cancellationToken = default)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(CTs.Token, cancellationToken);
-        return await ThumbmarkjsInterop.GetFingerprint(ElementId, cts.Token).NoSync();
+        return await ThumbmarkjsInterop.Get(ElementId, cts.Token).NoSync();
     }
 
-    public async ValueTask<JsonElement?> GetFingerprintData(CancellationToken cancellationToken = default)
+    public async ValueTask<JsonElement?> GetData(CancellationToken cancellationToken = default)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(CTs.Token, cancellationToken);
-        return await ThumbmarkjsInterop.GetFingerprintData(ElementId, cts.Token).NoSync();
+        return await ThumbmarkjsInterop.GetData(ElementId, cts.Token).NoSync();
     }
 
     public async ValueTask DisposeAsync()

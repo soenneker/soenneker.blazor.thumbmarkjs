@@ -34,9 +34,9 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
             if (useCdn)
             {
                 await _resourceLoader.LoadScriptAndWaitForVariable(
-                    "https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs@0.20.4/dist/thumbmark.umd.js",
+                    "https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs@1.0.0/dist/thumbmark.umd.js",
                     "ThumbmarkJS",
-                    "sha256-Tlokyjgdnumq7U6yVyscdfWr4YNiSaWrcqnAuWgwZSU=",
+                    "sha256-7ngQC8Zs8j/SJLg4IezN/uxMT4AHr2QOyWxPew/+trQ=",
                     cancellationToken: token)
                     .NoSync();
             }
@@ -72,16 +72,16 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
         await _jsRuntime.InvokeVoidAsync($"{_moduleName}.setOptions", cancellationToken, elementId, options).NoSync();
     }
 
-    public async ValueTask<string?> GetFingerprint(string elementId, CancellationToken cancellationToken = default)
+    public async ValueTask<string?> Get(string elementId, CancellationToken cancellationToken = default)
     {
         await _scriptInitializer.Init(cancellationToken).NoSync();
-        return await _jsRuntime.InvokeAsync<string?>($"{_moduleName}.getFingerprint", cancellationToken, elementId).NoSync();
+        return await _jsRuntime.InvokeAsync<string?>($"{_moduleName}.get", cancellationToken, elementId).NoSync();
     }
 
-    public async ValueTask<JsonElement?> GetFingerprintData(string elementId, CancellationToken cancellationToken = default)
+    public async ValueTask<JsonElement?> GetData(string elementId, CancellationToken cancellationToken = default)
     {
         await _scriptInitializer.Init(cancellationToken).NoSync();
-        return await _jsRuntime.InvokeAsync<JsonElement?>($"{_moduleName}.getFingerprintData", cancellationToken, elementId).NoSync();
+        return await _jsRuntime.InvokeAsync<JsonElement?>($"{_moduleName}.getData", cancellationToken, elementId).NoSync();
     }
 
     public async ValueTask DisposeAsync()

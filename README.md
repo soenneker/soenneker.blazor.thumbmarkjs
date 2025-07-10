@@ -26,21 +26,20 @@ builder.Services.AddThumbmarkjsInteropAsScoped();
 2. Add the component to your page or component:
 
 ```razor
-<Thumbmarkjs @ref="_thumbmarkjs" OnFingerprintGenerated="OnFingerprintGenerated"></Thumbmarkjs>
+<Thumbmarkjs @ref="_thumbmarkjs" OnGenerated="OnGenerated"></Thumbmarkjs>
 ```
 
-### Getting a Fingerprint
+### Getting a Thumbmark (Fingerprint)
 
 ```csharp
 private Thumbmarkjs _thumbmarkjs;
 
-private async Task GetFingerprint()
+private async Task Get()
 {
-    string fingerprint = await _thumbmarkjs.GetFingerprint();
-    // Use the fingerprint...
+    string fingerprint = await _thumbmarkjs.Get();
 }
 
-public void OnFingerprintGenerated(string fingerprint)
+public void OnGenerated(string thumbmark)
 {
     // Handle the fingerprint when it's generated
 }
@@ -51,12 +50,12 @@ public void OnFingerprintDataGenerated(JsonElement data)
 }
 ```
 
-### Getting Detailed Fingerprint Data
+### Getting Detailed Data
 
 ```csharp
-private async Task GetFingerprintData()
+private async Task GetData()
 {
-    JsonElement? data = await _thumbmarkjs.GetFingerprintData();
+    JsonElement? data = await _thumbmarkjs.GetData();
     string jsonData = data?.ToString();
     // Use the detailed data...
 }

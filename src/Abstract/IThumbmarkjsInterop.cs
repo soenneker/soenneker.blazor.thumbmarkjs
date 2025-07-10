@@ -39,7 +39,7 @@ public interface IThumbmarkjsInterop
     /// <param name="elementId">The ID of the element.</param>
     /// <param name="cancellationToken">Optional cancellation token.</param>
     /// <returns>The fingerprint hash string.</returns>
-    ValueTask<string?> GetFingerprint(string elementId, CancellationToken cancellationToken = default);
+    ValueTask<string?> Get(string elementId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the detailed fingerprint data for the current browser.
@@ -47,7 +47,7 @@ public interface IThumbmarkjsInterop
     /// <param name="elementId">The ID of the element.</param>
     /// <param name="cancellationToken">Optional cancellation token.</param>
     /// <returns>The fingerprint data as a JsonElement.</returns>
-    ValueTask<JsonElement?> GetFingerprintData(string elementId, CancellationToken cancellationToken = default);
+    ValueTask<JsonElement?> GetData(string elementId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Disposes of the interop resources.

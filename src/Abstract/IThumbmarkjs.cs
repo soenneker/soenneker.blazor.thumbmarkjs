@@ -38,7 +38,7 @@ public interface IThumbmarkjs
     /// The fingerprint hash is a unique identifier generated based on various browser characteristics.
     /// This hash can be used to identify returning visitors or track browser instances.
     /// </remarks>
-    ValueTask<string?> GetFingerprint(CancellationToken cancellationToken = default);
+    ValueTask<string?> Get(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the detailed fingerprint data for the current browser.
@@ -49,7 +49,7 @@ public interface IThumbmarkjs
     /// This method returns the raw fingerprint data including all collected browser characteristics.
     /// The data is returned as a JsonElement that can be parsed for detailed analysis.
     /// </remarks>
-    ValueTask<JsonElement?> GetFingerprintData(CancellationToken cancellationToken = default);
+    ValueTask<JsonElement?> GetData(CancellationToken cancellationToken = default);
 
 
     /// <summary>
@@ -59,5 +59,7 @@ public interface IThumbmarkjs
     /// This event can be used to react to fingerprint generation events,
     /// such as updating UI elements or triggering other operations.
     /// </remarks>
-    EventCallback<string> OnFingerprintGenerated { get; set; }
+    EventCallback<string> OnGenerated { get; set; }
+
+    EventCallback<JsonElement> OnDataGenerated { get; set; }
 } 

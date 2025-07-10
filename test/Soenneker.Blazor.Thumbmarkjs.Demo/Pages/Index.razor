@@ -10,29 +10,29 @@
     <h1>Soenneker.Blazor.Thumbmarkjs demo</h1>
     <p>This page demonstrates some of the uses of the Thumbmarkjs component.</p>
 
-    <Thumbmarkjs @ref="_thumbmarkjs" OnFingerprintGenerated="OnFingerprintGenerated"></Thumbmarkjs>
+    <Thumbmarkjs @ref="_thumbmarkjs" OnGenerated="OnGenerated"></Thumbmarkjs>
 
     <div class="row mt-4">
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Fingerprint</h5>
+                    <h5 class="card-title mb-0">Thumbmark</h5>
                 </div>
                 <div class="card-body">
-                    @if (string.IsNullOrEmpty(Fingerprint))
+                    @if (string.IsNullOrEmpty(Thumbmark))
                     {
-                        <p class="text-muted">Click the button below to get your fingerprint</p>
+                        <p class="text-muted">Click the button below to get your thumbmark</p>
                     }
                     else
                     {
                         <div class="mb-3">
-                            <label class="form-label">Fingerprint Hash:</label>
+                            <label class="form-label">Hash:</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" value="@Fingerprint" readonly />
+                                <input type="text" class="form-control" value="@Thumbmark" readonly />
                             </div>
                         </div>
                     }
-                    <button class="btn btn-primary" @onclick="GetFingerprint" disabled="@IsLoading">
+                    <button class="btn btn-primary" @onclick="Get" disabled="@IsLoading">
                         @if (IsLoading)
                         {
                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -40,7 +40,7 @@
                         }
                         else
                         {
-                            <span>Get Fingerprint</span>
+                            <span>Get</span>
                         }
                     </button>
                 </div>
@@ -50,21 +50,21 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Fingerprint Data</h5>
+                    <h5 class="card-title mb-0">Thumbmark Data</h5>
                 </div>
                 <div class="card-body">
-                    @if (FingerprintData == null)
+                    @if (ThumbmarkData == null)
                     {
-                        <p class="text-muted">Click the button below to get detailed fingerprint data</p>
+                        <p class="text-muted">Click the button below to get detailed thumbmark data</p>
                     }
                     else
                     {
                         <div class="mb-3">
                             <label class="form-label">Raw Data:</label>
-                            <MemoEdit Rows="5" @bind-Text=@FingerprintData />
+                            <MemoEdit Rows="5" @bind-Text=@ThumbmarkData />
                         </div>
                     }
-                    <button class="btn btn-primary" @onclick="GetFingerprintData" disabled="@IsLoading">
+                    <button class="btn btn-primary" @onclick="GetData" disabled="@IsLoading">
                         @if (IsLoading)
                         {
                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -82,18 +82,18 @@
 </div>
 
 @code {
-    private string? Fingerprint { get; set; }
-    private string? FingerprintData { get; set; }
+    private string? Thumbmark { get; set; }
+    private string? ThumbmarkData { get; set; }
     private bool IsLoading { get; set; }
 
     private Thumbmarkjs _thumbmarkjs;
 
-    private async Task GetFingerprint()
+    private async Task Get()
     {
         try
         {
             IsLoading = true;
-            Fingerprint = await _thumbmarkjs.GetFingerprint();
+            Thumbmark = await _thumbmarkjs.Get();
         }
         finally
         {
@@ -102,18 +102,18 @@
         }
     }
 
-    public void OnFingerprintGenerated(string fingerprint)
+    public void OnGenerated(string thumbmark)
     {
-        Logger.LogInformation("OnFingerprintGenerated: {fingerprint}", fingerprint);
+        Logger.LogInformation("OnGenerated: {thumbmark}", thumbmark);
     }
 
-    private async Task GetFingerprintData()
+    private async Task GetData()
     {
         try
         {
             IsLoading = true;
-            JsonElement? data = await _thumbmarkjs.GetFingerprintData();
-            FingerprintData = data?.ToString();
+            JsonElement? data = await _thumbmarkjs.GetData();
+            ThumbmarkData = data?.ToString();
         }
         finally
         {
