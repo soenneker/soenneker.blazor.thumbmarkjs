@@ -44,8 +44,8 @@
 
             bool useCdn = Options?.UseCdn ?? true;
 
-            await ThumbmarkjsInterop.Initialize(_dotNetReference, useCdn).NoSync();
-            await ThumbmarkjsInterop.CreateObserver(ElementId).NoSync();
+            await ThumbmarkjsInterop.Initialize(_dotNetReference, useCdn);
+            await ThumbmarkjsInterop.CreateObserver(ElementId);
         }
     }
 
@@ -66,7 +66,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            await ThumbmarkjsInterop.SetOptions(ElementId, options, linked).NoSync();
+            await ThumbmarkjsInterop.SetOptions(ElementId, options, linked);
     }
 
     public async ValueTask<string?> Get(CancellationToken cancellationToken = default)
@@ -74,7 +74,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await ThumbmarkjsInterop.Get(ElementId, linked).NoSync();
+            return await ThumbmarkjsInterop.Get(ElementId, linked);
     }
 
     public async ValueTask<JsonElement?> GetData(CancellationToken cancellationToken = default)
@@ -82,12 +82,12 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await ThumbmarkjsInterop.GetData(ElementId, linked).NoSync();
+            return await ThumbmarkjsInterop.GetData(ElementId, linked);
     }
 
     public override async ValueTask DisposeAsync()
     {
-        await base.DisposeAsync().NoSync();
+        await base.DisposeAsync();
 
         _dotNetReference?.Dispose();
     }

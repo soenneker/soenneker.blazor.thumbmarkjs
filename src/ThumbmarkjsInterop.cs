@@ -1,4 +1,4 @@
-﻿using Soenneker.Blazor.Thumbmarkjs.Abstract;
+using Soenneker.Blazor.Thumbmarkjs.Abstract;
 using Microsoft.JSInterop;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +38,7 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
                     "ThumbmarkJS",
                     "sha256-7ngQC8Zs8j/SJLg4IezN/uxMT4AHr2QOyWxPew/+trQ=",
                     cancellationToken: token)
-                    .NoSync();
+                    ;
             }
             else
             {
@@ -46,10 +46,10 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
                     "_content/Soenneker.Blazor.Thumbmarkjs/js/thumbmark.umd.js",
                     "ThumbmarkJS",
                     cancellationToken: token)
-                    .NoSync();
+                    ;
             }
 
-            await _resourceLoader.ImportModuleAndWaitUntilAvailable(_module, _moduleName, 100, token).NoSync();
+            await _resourceLoader.ImportModuleAndWaitUntilAvailable(_module, _moduleName, 100, token);
 
             return new object();
         });
@@ -57,8 +57,8 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 
     public async ValueTask Initialize(DotNetObjectReference<Thumbmarkjs> dotNetReference, bool useCdn = true, CancellationToken cancellationToken = default)
     {
-        await _scriptInitializer.Init(cancellationToken, useCdn).NoSync();
-        await _jsRuntime.InvokeVoidAsync($"{_moduleName}.initialize", cancellationToken, dotNetReference).NoSync();
+        await _scriptInitializer.Init(cancellationToken, useCdn);
+        await _jsRuntime.InvokeVoidAsync($"{_moduleName}.initialize", cancellationToken, dotNetReference);
     }
 
     public ValueTask CreateObserver(string elementId, CancellationToken cancellationToken = default)
@@ -68,25 +68,25 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 
     public async ValueTask SetOptions(string elementId, object options, CancellationToken cancellationToken = default)
     {
-        await _scriptInitializer.Init(cancellationToken).NoSync();
-        await _jsRuntime.InvokeVoidAsync($"{_moduleName}.setOptions", cancellationToken, elementId, options).NoSync();
+        await _scriptInitializer.Init(cancellationToken);
+        await _jsRuntime.InvokeVoidAsync($"{_moduleName}.setOptions", cancellationToken, elementId, options);
     }
 
     public async ValueTask<string?> Get(string elementId, CancellationToken cancellationToken = default)
     {
-        await _scriptInitializer.Init(cancellationToken).NoSync();
-        return await _jsRuntime.InvokeAsync<string?>($"{_moduleName}.get", cancellationToken, elementId).NoSync();
+        await _scriptInitializer.Init(cancellationToken);
+        return await _jsRuntime.InvokeAsync<string?>($"{_moduleName}.get", cancellationToken, elementId);
     }
 
     public async ValueTask<JsonElement?> GetData(string elementId, CancellationToken cancellationToken = default)
     {
-        await _scriptInitializer.Init(cancellationToken).NoSync();
-        return await _jsRuntime.InvokeAsync<JsonElement?>($"{_moduleName}.getData", cancellationToken, elementId).NoSync();
+        await _scriptInitializer.Init(cancellationToken);
+        return await _jsRuntime.InvokeAsync<JsonElement?>($"{_moduleName}.getData", cancellationToken, elementId);
     }
 
     public async ValueTask DisposeAsync()
     {
-        await _resourceLoader.DisposeModule(_module).NoSync();
-        await _scriptInitializer.DisposeAsync().NoSync();
+        await _resourceLoader.DisposeModule(_module);
+        await _scriptInitializer.DisposeAsync();
     }
 }
