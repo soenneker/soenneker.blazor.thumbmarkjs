@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Soenneker.Blazor.Utils.ResourceLoader.Abstract;
 using Soenneker.Utils.AsyncSingleton;
-using Soenneker.Extensions.ValueTask;
 using System.Text.Json;
 
 namespace Soenneker.Blazor.Thumbmarkjs;

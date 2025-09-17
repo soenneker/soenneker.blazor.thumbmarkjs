@@ -4,7 +4,6 @@
 @using System.Threading
 @using System.Text.Json
 @using Soenneker.Blazor.Thumbmarkjs.Configuration
-@using Soenneker.Extensions.ValueTask
 @using Soenneker.Extensions.CancellationTokens
 @using Soenneker.Blazor.Extensions.EventCallback;
 
@@ -20,9 +19,6 @@
 
     [Inject]
     private ILogger<Thumbmarkjs> Logger { get; set; } = null!;
-
-    [Parameter(CaptureUnmatchedValues = true)]
-    public Dictionary<string, object?>? Attributes { get; set; }
 
     [Parameter]
     public ThumbmarkjsOptions? Options { get; set; }

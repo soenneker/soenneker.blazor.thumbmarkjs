@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components;
+using Soenneker.Quark.Components.Cancellable.Abstract;
 
 namespace Soenneker.Blazor.Thumbmarkjs.Abstract;
 
@@ -9,7 +10,7 @@ namespace Soenneker.Blazor.Thumbmarkjs.Abstract;
 /// Interface for the Thumbmarkjs Blazor component that provides browser fingerprinting capabilities.
 /// This component wraps the Thumbmark.js library to provide browser fingerprinting functionality in Blazor applications.
 /// </summary>
-public interface IThumbmarkjs
+public interface IThumbmarkjs : ICancellableComponent
 {
     /// <summary>
     /// Gets the unique identifier for the Thumbmarkjs instance.
