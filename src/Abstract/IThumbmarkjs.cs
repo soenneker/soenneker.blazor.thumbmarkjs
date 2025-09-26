@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components;
-using Soenneker.Quark.Components.Core.Cancellable.Abstract;
+using Soenneker.Quark;
 
 namespace Soenneker.Blazor.Thumbmarkjs.Abstract;
 

@@ -7,10 +7,10 @@
 @using Soenneker.Extensions.CancellationTokens
 @using Soenneker.Blazor.Extensions.EventCallback;
 
-@inherits Soenneker.Quark.Components.Core.Cancellable.CoreCancellableComponent
+@inherits Soenneker.Quark.CoreCancellableComponent
 @implements IThumbmarkjs
 
-<div id="@ElementId" @attributes="Attributes" ></div>
+<div id="@Id" @attributes="Attributes"></div>
 
 @code {
 
@@ -29,7 +29,8 @@
     [Parameter]
     public EventCallback<JsonElement> OnDataGenerated { get; set; }
 
-    public string ElementId { get; } = $"thumbmarkjs-{Guid.NewGuid()}";
+    public override string? Id { get; set; } = $"thumbmarkjs-{Guid.NewGuid()}";
+
     private DotNetObjectReference<Thumbmarkjs>? _dotNetReference;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -41,7 +42,7 @@
             bool useCdn = Options?.UseCdn ?? true;
 
             await ThumbmarkjsInterop.Initialize(_dotNetReference, useCdn);
-            await ThumbmarkjsInterop.CreateObserver(ElementId);
+            await ThumbmarkjsInterop.CreateObserver(Id);
         }
     }
 
@@ -62,7 +63,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            await ThumbmarkjsInterop.SetOptions(ElementId, options, linked);
+            await ThumbmarkjsInterop.SetOptions(Id, options, linked);
     }
 
     public async ValueTask<string?> Get(CancellationToken cancellationToken = default)
@@ -70,7 +71,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await ThumbmarkjsInterop.Get(ElementId, linked);
+            return await ThumbmarkjsInterop.Get(Id, linked);
     }
 
     public async ValueTask<JsonElement?> GetData(CancellationToken cancellationToken = default)
@@ -78,7 +79,7 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await ThumbmarkjsInterop.GetData(ElementId, linked);
+            return await ThumbmarkjsInterop.GetData(Id, linked);
     }
 
     public override async ValueTask DisposeAsync()
