@@ -3,7 +3,7 @@ using Microsoft.JSInterop;
 using System.Threading;
 using System.Threading.Tasks;
 using Soenneker.Blazor.Utils.ResourceLoader.Abstract;
-using Soenneker.Utils.AsyncSingleton;
+using Soenneker.Asyncs.Initializers;
 using System.Text.Json;
 
 namespace Soenneker.Blazor.Thumbmarkjs;
@@ -13,7 +13,7 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 {
     private readonly IJSRuntime _jsRuntime;
     private readonly IResourceLoader _resourceLoader;
-    private readonly AsyncSingleton _scriptInitializer;
+    private readonly AsyncInitializer<bool> _scriptInitializer;
 
     private const string _module = "Soenneker.Blazor.Thumbmarkjs/js/thumbmarkjsinterop.js";
     private const string _moduleName = "ThumbmarkjsInterop";
@@ -23,13 +23,8 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
         _jsRuntime = jsRuntime;
         _resourceLoader = resourceLoader;
 
-        _scriptInitializer = new AsyncSingleton(async (token, arr) =>
+        _scriptInitializer = new AsyncInitializer<bool>(async (useCdn, token) =>
         {
-            var useCdn = true;
-
-            if (arr.Length > 0)
-                useCdn = (bool)arr[0];
-
             if (useCdn)
             {
                 await _resourceLoader.LoadScriptAndWaitForVariable(
@@ -49,14 +44,12 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
             }
 
             await _resourceLoader.ImportModuleAndWaitUntilAvailable(_module, _moduleName, 100, token);
-
-            return new object();
         });
     }
 
     public async ValueTask Initialize(DotNetObjectReference<Thumbmarkjs> dotNetReference, bool useCdn = true, CancellationToken cancellationToken = default)
     {
-        await _scriptInitializer.Init(cancellationToken, useCdn);
+        await _scriptInitializer.Init(useCdn, cancellationToken);
         await _jsRuntime.InvokeVoidAsync($"{_moduleName}.initialize", cancellationToken, dotNetReference);
     }
 
@@ -67,19 +60,19 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 
     public async ValueTask SetOptions(string elementId, object options, CancellationToken cancellationToken = default)
     {
-        await _scriptInitializer.Init(cancellationToken);
+        await _scriptInitializer.Init(true, cancellationToken);
         await _jsRuntime.InvokeVoidAsync($"{_moduleName}.setOptions", cancellationToken, elementId, options);
     }
 
     public async ValueTask<string?> Get(string elementId, CancellationToken cancellationToken = default)
     {
-        await _scriptInitializer.Init(cancellationToken);
+        await _scriptInitializer.Init(true, cancellationToken);
         return await _jsRuntime.InvokeAsync<string?>($"{_moduleName}.get", cancellationToken, elementId);
     }
 
     public async ValueTask<JsonElement?> GetData(string elementId, CancellationToken cancellationToken = default)
     {
-        await _scriptInitializer.Init(cancellationToken);
+        await _scriptInitializer.Init(true, cancellationToken);
         return await _jsRuntime.InvokeAsync<JsonElement?>($"{_moduleName}.getData", cancellationToken, elementId);
     }
 
