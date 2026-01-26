@@ -62,12 +62,12 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
         }
     }
 
-    public ValueTask CreateObserver(string elementId, CancellationToken cancellationToken = default)
+    public async ValueTask CreateObserver(string elementId, CancellationToken cancellationToken = default)
     {
         var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
 
         using (source)
-            return _jsRuntime.InvokeVoidAsync("ThumbmarkjsInterop.createObserver", linked, elementId);
+            await _jsRuntime.InvokeVoidAsync("ThumbmarkjsInterop.createObserver", linked, elementId);
     }
 
     public async ValueTask SetOptions(string elementId, object options, CancellationToken cancellationToken = default)
