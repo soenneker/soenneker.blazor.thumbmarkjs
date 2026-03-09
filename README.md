@@ -1,6 +1,7 @@
-﻿[![](https://img.shields.io/nuget/v/soenneker.blazor.thumbmarkjs.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.blazor.thumbmarkjs/)
+[![](https://img.shields.io/nuget/v/soenneker.blazor.thumbmarkjs.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.blazor.thumbmarkjs/)
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.blazor.thumbmarkjs/publish-package.yml?style=for-the-badge)](https://github.com/soenneker/soenneker.blazor.thumbmarkjs/actions/workflows/publish-package.yml)
 [![](https://img.shields.io/nuget/dt/soenneker.blazor.thumbmarkjs.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.blazor.thumbmarkjs/)
+[![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.blazor.thumbmarkjs/codeql.yml?label=CodeQL&style=for-the-badge)](https://github.com/soenneker/soenneker.blazor.thumbmarkjs/actions/workflows/codeql.yml)
 
 # ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Blazor.Thumbmarkjs
 ### A Blazor interop library for the javascript fingerprinting library, [thumbmarkjs](https://github.com/thumbmarkjs/thumbmarkjs)
