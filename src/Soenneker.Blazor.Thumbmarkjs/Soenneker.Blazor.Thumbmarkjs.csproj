@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
@@ -47,8 +48,9 @@
 
 
     <ItemGroup>
+        <PackageReference Include="Soenneker.Asyncs.Initializers" Version="4.0.45" />
         <PackageReference Include="Soenneker.Blazor.Extensions.EventCallback" Version="4.0.444" />
-        <PackageReference Include="Soenneker.Blazor.Utils.ResourceLoader" Version="4.0.1629" />
+        <PackageReference Include="Soenneker.Blazor.Utils.ResourceLoader" Version="4.0.1630" />
         <PackageReference Include="Soenneker.Quark.Components.Core.Cancellable" Version="4.0.60" />
     </ItemGroup>
 </Project>

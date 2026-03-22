@@ -1,11 +1,11 @@
 @using Microsoft.JSInterop
-@using Soenneker.Blazor.Thumbmarkjs.Abstract
 @using Microsoft.Extensions.Logging
-@using System.Threading
 @using System.Text.Json
+@using System.Threading
+@using Soenneker.Blazor.Extensions.EventCallback
+@using Soenneker.Blazor.Thumbmarkjs.Abstract
 @using Soenneker.Blazor.Thumbmarkjs.Configuration
 @using Soenneker.Extensions.CancellationTokens
-@using Soenneker.Blazor.Extensions.EventCallback;
 
 @inherits Soenneker.Quark.CoreCancellableComponent
 @implements IThumbmarkjs
@@ -13,7 +13,6 @@
 <div id="@Id" @attributes="Attributes"></div>
 
 @code {
-
     [Inject]
     private IThumbmarkjsInterop ThumbmarkjsInterop { get; set; } = null!;
 
@@ -29,33 +28,59 @@
     [Parameter]
     public EventCallback<JsonElement> OnDataGenerated { get; set; }
 
-    public override string? Id { get; set; } = $"thumbmarkjs-{Guid.NewGuid()}";
+    public override string? Id { get; set; } = $"thumbmarkjs-{Guid.NewGuid():N}";
 
     private DotNetObjectReference<Thumbmarkjs>? _dotNetReference;
+    private bool _initialized;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender || _initialized)
+            return;
+
+        _dotNetReference = DotNetObjectReference.Create(this);
+
+        bool useCdn = Options?.UseCdn ?? true;
+
+        await ThumbmarkjsInterop.Initialize(_dotNetReference, useCdn);
+
+        if (Options is not null)
         {
-            _dotNetReference = DotNetObjectReference.Create(this);
-
-            bool useCdn = Options?.UseCdn ?? true;
-
-            await ThumbmarkjsInterop.Initialize(_dotNetReference, useCdn);
-            await ThumbmarkjsInterop.CreateObserver(Id);
+            await ThumbmarkjsInterop.SetOptions(Id!, Options);
         }
+
+        await ThumbmarkjsInterop.CreateObserver(Id!);
+
+        _initialized = true;
     }
 
     [JSInvokable("OnGenerated")]
-    public Task OnGeneratedJs(string thumbmark)
+    public async Task OnGeneratedJs(string? thumbmark)
     {
-        return OnGenerated.InvokeIfHasDelegate(thumbmark);
+        if (thumbmark is null)
+            return;
+
+        try
+        {
+            await OnGenerated.InvokeIfHasDelegate(thumbmark);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error invoking OnGenerated callback");
+        }
     }
 
     [JSInvokable("OnDataGenerated")]
-    public Task OnDataGeneratedJs(JsonElement jsonElement)
+    public async Task OnDataGeneratedJs(JsonElement jsonElement)
     {
-        return OnDataGenerated.InvokeIfHasDelegate(jsonElement);
+        try
+        {
+            await OnDataGenerated.InvokeIfHasDelegate(jsonElement);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error invoking OnDataGenerated callback");
+        }
     }
 
     public async ValueTask SetOptions(object options, CancellationToken cancellationToken = default)
@@ -63,7 +88,9 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            await ThumbmarkjsInterop.SetOptions(Id, options, linked);
+        {
+            await ThumbmarkjsInterop.SetOptions(Id!, options, linked);
+        }
     }
 
     public async ValueTask<string?> Get(CancellationToken cancellationToken = default)
@@ -71,7 +98,9 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await ThumbmarkjsInterop.Get(Id, linked);
+        {
+            return await ThumbmarkjsInterop.Get(Id!, linked);
+        }
     }
 
     public async ValueTask<JsonElement?> GetData(CancellationToken cancellationToken = default)
@@ -79,14 +108,30 @@
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
-            return await ThumbmarkjsInterop.GetData(Id, linked);
+        {
+            return await ThumbmarkjsInterop.GetData(Id!, linked);
+        }
     }
 
     public override async ValueTask DisposeAsync()
     {
-        await base.DisposeAsync();
+        try
+        {
+            if (_initialized && Id is not null)
+            {
+                await ThumbmarkjsInterop.Dispose(Id);
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        catch (Exception ex)
+        {
+            Logger.LogDebug(ex, "Error disposing Thumbmarkjs interop");
+        }
 
         _dotNetReference?.Dispose();
-    }
 
+        await base.DisposeAsync();
+    }
 }

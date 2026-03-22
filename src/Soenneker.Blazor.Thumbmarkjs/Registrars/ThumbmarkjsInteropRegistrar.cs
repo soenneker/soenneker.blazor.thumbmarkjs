@@ -15,7 +15,8 @@ public static class ThumbmarkjsInteropRegistrar
     /// </summary>
     public static IServiceCollection AddThumbmarkjsInteropAsScoped(this IServiceCollection services)
     {
-        services.AddResourceLoaderAsScoped().TryAddScoped<IThumbmarkjsInterop, ThumbmarkjsInterop>();
+        services.AddResourceLoaderAsScoped()
+                .TryAddScoped<IThumbmarkjsInterop, ThumbmarkjsInterop>();
 
         return services;
     }

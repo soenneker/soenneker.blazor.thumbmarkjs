@@ -2,15 +2,16 @@
 @using System.Text.Json
 @using Microsoft.Extensions.Logging
 
-
 @inject ILogger<Index> Logger
 
 <div class="container mt-4">
-    <img src="https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png" />
+    <img src="https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png" class="img-fluid mb-3" />
     <h1>Soenneker.Blazor.Thumbmarkjs demo</h1>
-    <p>This page demonstrates some of the uses of the Thumbmarkjs component.</p>
+    <p>This page demonstrates Thumbmarkjs usage.</p>
 
-    <Thumbmarkjs @ref="_thumbmarkjs" OnGenerated="OnGenerated"></Thumbmarkjs>
+    <Thumbmarkjs @ref="_thumbmarkjs"
+                 OnGenerated="OnGenerated"
+                 OnDataGenerated="OnDataGenerated" />
 
     <div class="row mt-4">
         <div class="col-md-6">
@@ -19,19 +20,18 @@
                     <h5 class="card-title mb-0">Thumbmark</h5>
                 </div>
                 <div class="card-body">
-                    @if (string.IsNullOrEmpty(Thumbmark))
+                    @if (string.IsNullOrWhiteSpace(Thumbmark))
                     {
-                        <p class="text-muted">Click the button below to get your thumbmark</p>
+                        <p class="text-muted">Click the button below to get your thumbmark.</p>
                     }
                     else
                     {
                         <div class="mb-3">
                             <label class="form-label">Hash:</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" value="@Thumbmark" readonly />
-                            </div>
+                            <input type="text" class="form-control" value="@Thumbmark" readonly />
                         </div>
                     }
+
                     <button class="btn btn-primary" @onclick="Get" disabled="@IsLoading">
                         @if (IsLoading)
                         {
@@ -53,17 +53,18 @@
                     <h5 class="card-title mb-0">Thumbmark Data</h5>
                 </div>
                 <div class="card-body">
-                    @if (ThumbmarkData == null)
+                    @if (string.IsNullOrWhiteSpace(ThumbmarkData))
                     {
-                        <p class="text-muted">Click the button below to get detailed thumbmark data</p>
+                        <p class="text-muted">Click the button below to get detailed thumbmark data.</p>
                     }
                     else
                     {
                         <div class="mb-3">
                             <label class="form-label">Raw Data:</label>
-@*                             <MemoEdit Rows="5" @bind-Text=@ThumbmarkData /> *@
+                            <pre class="border rounded p-3 bg-light" style="white-space: pre-wrap; max-height: 420px; overflow: auto;">@ThumbmarkData</pre>
                         </div>
                     }
+
                     <button class="btn btn-primary" @onclick="GetData" disabled="@IsLoading">
                         @if (IsLoading)
                         {
@@ -86,10 +87,13 @@
     private string? ThumbmarkData { get; set; }
     private bool IsLoading { get; set; }
 
-    private Thumbmarkjs _thumbmarkjs;
+    private Thumbmarkjs? _thumbmarkjs;
 
     private async Task Get()
     {
+        if (_thumbmarkjs is null)
+            return;
+
         try
         {
             IsLoading = true;
@@ -102,18 +106,23 @@
         }
     }
 
-    public void OnGenerated(string thumbmark)
-    {
-        Logger.LogInformation("OnGenerated: {thumbmark}", thumbmark);
-    }
-
     private async Task GetData()
     {
+        if (_thumbmarkjs is null)
+            return;
+
         try
         {
             IsLoading = true;
+
             JsonElement? data = await _thumbmarkjs.GetData();
-            ThumbmarkData = data?.ToString();
+
+            ThumbmarkData = data.HasValue
+                ? JsonSerializer.Serialize(data.Value, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                })
+                : null;
         }
         finally
         {
@@ -121,4 +130,14 @@
             StateHasChanged();
         }
     }
-} 
+
+    private void OnGenerated(string thumbmark)
+    {
+        Logger.LogInformation("OnGenerated: {Thumbmark}", thumbmark);
+    }
+
+    private void OnDataGenerated(JsonElement data)
+    {
+        Logger.LogInformation("OnDataGenerated: {Data}", data.ToString());
+    }
+}

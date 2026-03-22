@@ -13,93 +13,104 @@ namespace Soenneker.Blazor.Thumbmarkjs;
 /// <inheritdoc cref="IThumbmarkjsInterop"/>
 public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 {
+    private const string _module = "Soenneker.Blazor.Thumbmarkjs/js/thumbmarkjsinterop.js";
+    private const string _cdnScript = "https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs@1.7.6/dist/thumbmark.umd.js";
+    private const string _localScript = "_content/Soenneker.Blazor.Thumbmarkjs/js/thumbmark.umd.js";
+    private const string _globalVariable = "ThumbmarkJS";
+    private const string _cdnIntegrity = "sha256-ooYNzSvQWQrvXa7FACA7i/RhXhzgtejhXzais2EaZAc=";
+
     private readonly IJSRuntime _jsRuntime;
     private readonly IResourceLoader _resourceLoader;
-    private readonly AsyncInitializer<bool> _scriptInitializer;
-
-    private const string _module = "Soenneker.Blazor.Thumbmarkjs/js/thumbmarkjsinterop.js";
-    private const string _moduleName = "ThumbmarkjsInterop";
-
     private readonly CancellationScope _cancellationScope = new();
+
+    private readonly AsyncInitializer<bool> _scriptInitializer;
+    private bool _useCdn = true;
 
     public ThumbmarkjsInterop(IJSRuntime jsRuntime, IResourceLoader resourceLoader)
     {
         _jsRuntime = jsRuntime;
         _resourceLoader = resourceLoader;
-
-        _scriptInitializer = new AsyncInitializer<bool>(Initialize);
+        _scriptInitializer = new AsyncInitializer<bool>(InitializeScript);
     }
 
-    private async ValueTask Initialize(bool useCdn, CancellationToken token)
+    private async ValueTask InitializeScript(bool useCdn, CancellationToken cancellationToken)
     {
         if (useCdn)
         {
-            await _resourceLoader.LoadScriptAndWaitForVariable(
-                "https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs@1.0.0/dist/thumbmark.umd.js",
-                "ThumbmarkJS",
-                "sha256-7ngQC8Zs8j/SJLg4IezN/uxMT4AHr2QOyWxPew/+trQ=",
-                cancellationToken: token);
+            await _resourceLoader.LoadScriptAndWaitForVariable(_cdnScript, _globalVariable, _cdnIntegrity, cancellationToken: cancellationToken);
         }
         else
         {
-            await _resourceLoader.LoadScriptAndWaitForVariable(
-                "_content/Soenneker.Blazor.Thumbmarkjs/js/thumbmark.umd.js",
-                "ThumbmarkJS",
-                cancellationToken: token);
+            await _resourceLoader.LoadScriptAndWaitForVariable(_localScript, _globalVariable, cancellationToken: cancellationToken);
         }
 
-        await _resourceLoader.ImportModuleAndWaitUntilAvailable(_module, _moduleName, 100, token);
+        await _resourceLoader.ImportModule(_module, cancellationToken);
     }
 
     public async ValueTask Initialize(DotNetObjectReference<Thumbmarkjs> dotNetReference, bool useCdn = true, CancellationToken cancellationToken = default)
     {
-        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+        _useCdn = useCdn;
+
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
         {
-            await _scriptInitializer.Init(useCdn, linked);
+            await _scriptInitializer.Init(_useCdn, linked);
             await _jsRuntime.InvokeVoidAsync("ThumbmarkjsInterop.initialize", linked, dotNetReference);
         }
     }
 
     public async ValueTask CreateObserver(string elementId, CancellationToken cancellationToken = default)
     {
-        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
+        {
+            await _scriptInitializer.Init(_useCdn, linked);
             await _jsRuntime.InvokeVoidAsync("ThumbmarkjsInterop.createObserver", linked, elementId);
+        }
     }
 
     public async ValueTask SetOptions(string elementId, object options, CancellationToken cancellationToken = default)
     {
-        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
         {
-            await _scriptInitializer.Init(true, linked);
+            await _scriptInitializer.Init(_useCdn, linked);
             await _jsRuntime.InvokeVoidAsync("ThumbmarkjsInterop.setOptions", linked, elementId, options);
         }
     }
 
     public async ValueTask<string?> Get(string elementId, CancellationToken cancellationToken = default)
     {
-        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
         {
-            await _scriptInitializer.Init(true, linked);
+            await _scriptInitializer.Init(_useCdn, linked);
             return await _jsRuntime.InvokeAsync<string?>("ThumbmarkjsInterop.get", linked, elementId);
         }
     }
 
     public async ValueTask<JsonElement?> GetData(string elementId, CancellationToken cancellationToken = default)
     {
-        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
         {
-            await _scriptInitializer.Init(true, linked);
+            await _scriptInitializer.Init(_useCdn, linked);
             return await _jsRuntime.InvokeAsync<JsonElement?>("ThumbmarkjsInterop.getData", linked, elementId);
+        }
+    }
+
+    public async ValueTask Dispose(string elementId, CancellationToken cancellationToken = default)
+    {
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
+
+        using (source)
+        {
+            await _jsRuntime.InvokeVoidAsync("ThumbmarkjsInterop.dispose", linked, elementId);
         }
     }
 
