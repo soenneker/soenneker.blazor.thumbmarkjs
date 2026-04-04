@@ -1,86 +1,48 @@
 @page "/"
 @using System.Text.Json
 @using Microsoft.Extensions.Logging
-
 @inject ILogger<Index> Logger
 
-<div class="container mt-4">
-    <img src="https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png" class="img-fluid mb-3" />
-    <h1>Soenneker.Blazor.Thumbmarkjs demo</h1>
-    <p>This page demonstrates Thumbmarkjs usage.</p>
+<Thumbmarkjs @ref="_thumbmarkjs"
+             OnGenerated="OnGenerated"
+             OnDataGenerated="OnDataGenerated" />
 
-    <Thumbmarkjs @ref="_thumbmarkjs"
-                 OnGenerated="OnGenerated"
-                 OnDataGenerated="OnDataGenerated" />
+<Div Space="Space.Y.Is6">
+    <Grid Columns="Columns.Is1.OnMd.Is2" Gap="Gap.Is4">
+        <DemoPanel Title="Thumbmark" Description="One-shot hash from the browser fingerprint.">
+            @if (string.IsNullOrWhiteSpace(Thumbmark))
+            {
+                <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">Run Get to compute the thumbmark.</Paragraph>
+            }
+            else
+            {
+                <Field>
+                    <FieldLabel>Hash</FieldLabel>
+                    <FieldBody>
+                        <Input Value="@Thumbmark" ReadOnly="true" />
+                    </FieldBody>
+                </Field>
+            }
+            <DemoButtonRow>
+                <Button OnClick="Get" Disabled="@IsLoading">@(IsLoading ? "Loading…" : "Get")</Button>
+            </DemoButtonRow>
+        </DemoPanel>
 
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Thumbmark</h5>
-                </div>
-                <div class="card-body">
-                    @if (string.IsNullOrWhiteSpace(Thumbmark))
-                    {
-                        <p class="text-muted">Click the button below to get your thumbmark.</p>
-                    }
-                    else
-                    {
-                        <div class="mb-3">
-                            <label class="form-label">Hash:</label>
-                            <input type="text" class="form-control" value="@Thumbmark" readonly />
-                        </div>
-                    }
-
-                    <button class="btn btn-primary" @onclick="Get" disabled="@IsLoading">
-                        @if (IsLoading)
-                        {
-                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            <span class="ms-2">Loading...</span>
-                        }
-                        else
-                        {
-                            <span>Get</span>
-                        }
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Thumbmark Data</h5>
-                </div>
-                <div class="card-body">
-                    @if (string.IsNullOrWhiteSpace(ThumbmarkData))
-                    {
-                        <p class="text-muted">Click the button below to get detailed thumbmark data.</p>
-                    }
-                    else
-                    {
-                        <div class="mb-3">
-                            <label class="form-label">Raw Data:</label>
-                            <pre class="border rounded p-3 bg-light" style="white-space: pre-wrap; max-height: 420px; overflow: auto;">@ThumbmarkData</pre>
-                        </div>
-                    }
-
-                    <button class="btn btn-primary" @onclick="GetData" disabled="@IsLoading">
-                        @if (IsLoading)
-                        {
-                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            <span class="ms-2">Loading...</span>
-                        }
-                        else
-                        {
-                            <span>Get Detailed Data</span>
-                        }
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+        <DemoPanel Title="Thumbmark data" Description="Detailed JSON payload from the library.">
+            @if (string.IsNullOrWhiteSpace(ThumbmarkData))
+            {
+                <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">Run Get detailed data.</Paragraph>
+            }
+            else
+            {
+                <PreCode Class="demo-pre" Highlight="false">@ThumbmarkData</PreCode>
+            }
+            <DemoButtonRow>
+                <Button OnClick="GetData" Variant="ButtonVariant.Secondary" Disabled="@IsLoading">Get detailed data</Button>
+            </DemoButtonRow>
+        </DemoPanel>
+    </Grid>
+</Div>
 
 @code {
     private string? Thumbmark { get; set; }
@@ -118,10 +80,7 @@
             JsonElement? data = await _thumbmarkjs.GetData();
 
             ThumbmarkData = data.HasValue
-                ? JsonSerializer.Serialize(data.Value, new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                })
+                ? JsonSerializer.Serialize(data.Value, new JsonSerializerOptions { WriteIndented = true })
                 : null;
         }
         finally
