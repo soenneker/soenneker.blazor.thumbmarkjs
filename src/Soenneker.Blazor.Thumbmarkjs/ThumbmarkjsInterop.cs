@@ -1,9 +1,11 @@
 using Microsoft.JSInterop;
 using Soenneker.Asyncs.Initializers;
 using Soenneker.Blazor.Thumbmarkjs.Abstract;
+using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 using Soenneker.Blazor.Utils.ResourceLoader.Abstract;
 using Soenneker.Extensions.CancellationTokens;
 using Soenneker.Utils.CancellationScopes;
+using System;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,24 +15,32 @@ namespace Soenneker.Blazor.Thumbmarkjs;
 /// <inheritdoc cref="IThumbmarkjsInterop"/>
 public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 {
-    private const string _module = "Soenneker.Blazor.Thumbmarkjs/js/thumbmarkjsinterop.js";
+    private const string _modulePath = "/_content/Soenneker.Blazor.Thumbmarkjs/js/thumbmarkjsinterop.js";
     private const string _cdnScript = "https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs@1.7.6/dist/thumbmark.umd.js";
     private const string _localScript = "_content/Soenneker.Blazor.Thumbmarkjs/js/thumbmark.umd.js";
     private const string _globalVariable = "ThumbmarkJS";
     private const string _cdnIntegrity = "sha256-ooYNzSvQWQrvXa7FACA7i/RhXhzgtejhXzais2EaZAc=";
 
-    private readonly IJSRuntime _jsRuntime;
     private readonly IResourceLoader _resourceLoader;
+    private readonly IModuleImportUtil _moduleImportUtil;
     private readonly CancellationScope _cancellationScope = new();
 
     private readonly AsyncInitializer<bool> _scriptInitializer;
     private bool _useCdn = true;
 
-    public ThumbmarkjsInterop(IJSRuntime jsRuntime, IResourceLoader resourceLoader)
+    public ThumbmarkjsInterop(IJSRuntime jsRuntime, IResourceLoader resourceLoader, IModuleImportUtil moduleImportUtil)
     {
-        _jsRuntime = jsRuntime;
         _resourceLoader = resourceLoader;
+        _moduleImportUtil = moduleImportUtil;
         _scriptInitializer = new AsyncInitializer<bool>(InitializeScript);
+    }
+
+    private static string NormalizeContentUri(string uri)
+    {
+        if (string.IsNullOrEmpty(uri) || uri.Contains("://", StringComparison.Ordinal))
+            return uri;
+
+        return uri[0] == '/' ? uri : "/" + uri;
     }
 
     private async ValueTask InitializeScript(bool useCdn, CancellationToken cancellationToken)
@@ -41,10 +51,10 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
         }
         else
         {
-            await _resourceLoader.LoadScriptAndWaitForVariable(_localScript, _globalVariable, cancellationToken: cancellationToken);
+            await _resourceLoader.LoadScriptAndWaitForVariable(NormalizeContentUri(_localScript), _globalVariable, cancellationToken: cancellationToken);
         }
 
-        await _resourceLoader.ImportModule(_module, cancellationToken);
+        _ = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
     }
 
     public async ValueTask Initialize(DotNetObjectReference<Thumbmarkjs> dotNetReference, bool useCdn = true, CancellationToken cancellationToken = default)
@@ -56,7 +66,8 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
         using (source)
         {
             await _scriptInitializer.Init(_useCdn, linked);
-            await _jsRuntime.InvokeVoidAsync("ThumbmarkjsInterop.initialize", linked, dotNetReference);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            await module.InvokeVoidAsync("initialize", linked, dotNetReference);
         }
     }
 
@@ -67,7 +78,8 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
         using (source)
         {
             await _scriptInitializer.Init(_useCdn, linked);
-            await _jsRuntime.InvokeVoidAsync("ThumbmarkjsInterop.createObserver", linked, elementId);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            await module.InvokeVoidAsync("createObserver", linked, elementId);
         }
     }
 
@@ -78,7 +90,8 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
         using (source)
         {
             await _scriptInitializer.Init(_useCdn, linked);
-            await _jsRuntime.InvokeVoidAsync("ThumbmarkjsInterop.setOptions", linked, elementId, options);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            await module.InvokeVoidAsync("setOptions", linked, elementId, options);
         }
     }
 
@@ -89,7 +102,8 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
         using (source)
         {
             await _scriptInitializer.Init(_useCdn, linked);
-            return await _jsRuntime.InvokeAsync<string?>("ThumbmarkjsInterop.get", linked, elementId);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            return await module.InvokeAsync<string?>("get", linked, elementId);
         }
     }
 
@@ -100,7 +114,8 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
         using (source)
         {
             await _scriptInitializer.Init(_useCdn, linked);
-            return await _jsRuntime.InvokeAsync<JsonElement?>("ThumbmarkjsInterop.getData", linked, elementId);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            return await module.InvokeAsync<JsonElement?>("getData", linked, elementId);
         }
     }
 
@@ -110,13 +125,14 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 
         using (source)
         {
-            await _jsRuntime.InvokeVoidAsync("ThumbmarkjsInterop.dispose", linked, elementId);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            await module.InvokeVoidAsync("dispose", linked, elementId);
         }
     }
 
     public async ValueTask DisposeAsync()
     {
-        await _resourceLoader.DisposeModule(_module);
+        await _moduleImportUtil.DisposeContentModule(_modulePath);
         await _scriptInitializer.DisposeAsync();
         await _cancellationScope.DisposeAsync();
     }

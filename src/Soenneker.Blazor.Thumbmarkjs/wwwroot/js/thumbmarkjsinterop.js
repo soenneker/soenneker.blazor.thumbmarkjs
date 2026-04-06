@@ -1,24 +1,17 @@
-﻿export class ThumbmarkjsInterop {
-    constructor() {
-        this.options = {};
-        this.dotNetReference = null;
-        this.thumbmarks = {};
-        this.observers = {};
-        this.results = {};
-    }
-
-    initialize(dotNetReference) {
+const interop = (() => {
+    const instance = {};
+    instance.initialize = function(dotNetReference) {
         this.dotNetReference = dotNetReference;
-    }
+    };
 
-    setOptions(elementId, options) {
+    instance.setOptions = function(elementId, options) {
         const parsed = this.#parseOptions(options);
         this.options[elementId] = parsed;
         this.thumbmarks[elementId] = this.#createThumbmark(parsed);
         delete this.results[elementId];
-    }
+    };
 
-    async get(elementId) {
+    instance.get = async function(elementId) {
         const data = await this.#getResult(elementId);
         if (!data)
             return null;
@@ -30,9 +23,9 @@
         }
 
         return value;
-    }
+    };
 
-    async getData(elementId) {
+    instance.getData = async function(elementId) {
         const data = await this.#getResult(elementId);
         if (!data)
             return null;
@@ -43,13 +36,13 @@
         }
 
         return data;
-    }
+    };
 
-    clearResult(elementId) {
+    instance.clearResult = function(elementId) {
         delete this.results[elementId];
-    }
+    };
 
-    createObserver(elementId) {
+    instance.createObserver = function(elementId) {
         const target = document.getElementById(elementId);
         if (!target?.parentNode)
             return;
@@ -71,17 +64,17 @@
 
         observer.observe(target.parentNode, { childList: true });
         this.observers[elementId] = observer;
-    }
+    };
 
-    disposeObserver(elementId) {
+    instance.disposeObserver = function(elementId) {
         const observer = this.observers[elementId];
         if (observer) {
             observer.disconnect();
             delete this.observers[elementId];
         }
-    }
+    };
 
-    dispose(elementId) {
+    instance.dispose = function(elementId) {
         if (elementId) {
             this.disposeObserver(elementId);
             delete this.thumbmarks[elementId];
@@ -98,34 +91,34 @@
         this.options = {};
         this.results = {};
         this.dotNetReference = null;
-    }
+    };
 
-    async #getResult(elementId) {
+    instance.getResult = async function(elementId) {
         let data = this.results[elementId];
         if (data)
             return data;
 
-        const thumbmark = this.#ensureThumbmark(elementId);
+        const thumbmark = this.ensureThumbmark(elementId);
         if (!thumbmark)
             return null;
 
         data = await thumbmark.get();
         this.results[elementId] = data;
         return data;
-    }
+    };
 
-    #ensureThumbmark(elementId) {
+    instance.ensureThumbmark = function(elementId) {
         let instance = this.thumbmarks[elementId];
         if (instance)
             return instance;
 
         const options = this.options[elementId] ?? {};
-        instance = this.#createThumbmark(options);
+        instance = this.createThumbmark(options);
         this.thumbmarks[elementId] = instance;
         return instance;
-    }
+    };
 
-    #createThumbmark(options) {
+    instance.createThumbmark = function(options) {
         const ThumbmarkCtor =
             globalThis.Thumbmark ??
             globalThis.ThumbmarkJS?.Thumbmark;
@@ -136,9 +129,9 @@
         }
 
         return new ThumbmarkCtor(options ?? {});
-    }
+    };
 
-    #parseOptions(options) {
+    instance.parseOptions = function(options) {
         if (!options)
             return {};
 
@@ -163,7 +156,37 @@
             console.error("Failed to parse ThumbmarkJS options.", err);
             return {};
         }
-    }
+    };
+
+        instance.options = {};
+        instance.dotNetReference = null;
+        instance.thumbmarks = {};
+        instance.observers = {};
+        instance.results = {};
+    
+
+    return instance;
+})();
+export function initialize(dotNetReference) {
+    return interop.initialize(dotNetReference);
 }
 
-window.ThumbmarkjsInterop = new ThumbmarkjsInterop();
+export function setOptions(elementId, options) {
+    return interop.setOptions(elementId, options);
+}
+
+export function get(elementId) {
+    return interop.get(elementId);
+}
+
+export function getData(elementId) {
+    return interop.getData(elementId);
+}
+
+export function createObserver(elementId) {
+    return interop.createObserver(elementId);
+}
+
+export function dispose(elementId) {
+    return interop.dispose(elementId);
+}
