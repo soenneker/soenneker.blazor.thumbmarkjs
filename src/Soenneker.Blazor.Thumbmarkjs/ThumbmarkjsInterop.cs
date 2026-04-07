@@ -28,7 +28,7 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
     private readonly AsyncInitializer<bool> _scriptInitializer;
     private bool _useCdn = true;
 
-    public ThumbmarkjsInterop(IJSRuntime jsRuntime, IResourceLoader resourceLoader, IModuleImportUtil moduleImportUtil)
+    public ThumbmarkjsInterop(IResourceLoader resourceLoader, IModuleImportUtil moduleImportUtil)
     {
         _resourceLoader = resourceLoader;
         _moduleImportUtil = moduleImportUtil;
