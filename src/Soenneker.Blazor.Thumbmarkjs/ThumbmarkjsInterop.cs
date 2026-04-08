@@ -15,7 +15,7 @@ namespace Soenneker.Blazor.Thumbmarkjs;
 /// <inheritdoc cref="IThumbmarkjsInterop"/>
 public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 {
-    private const string _modulePath = "/_content/Soenneker.Blazor.Thumbmarkjs/js/thumbmarkjsinterop.js";
+    private const string _modulePath = "_content/Soenneker.Blazor.Thumbmarkjs/js/thumbmarkjsinterop.js";
     private const string _cdnScript = "https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs@1.7.6/dist/thumbmark.umd.js";
     private const string _localScript = "_content/Soenneker.Blazor.Thumbmarkjs/js/thumbmark.umd.js";
     private const string _globalVariable = "ThumbmarkJS";
