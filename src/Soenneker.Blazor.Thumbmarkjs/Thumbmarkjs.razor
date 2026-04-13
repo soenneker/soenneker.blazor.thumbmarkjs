@@ -6,6 +6,7 @@
 @using Soenneker.Blazor.Thumbmarkjs.Abstract
 @using Soenneker.Blazor.Thumbmarkjs.Configuration
 @using Soenneker.Extensions.CancellationTokens
+@using Soenneker.Blazor.Utils.Ids
 
 @inherits Soenneker.Quark.CoreCancellableComponent
 @implements IThumbmarkjs
@@ -28,7 +29,7 @@
     [Parameter]
     public EventCallback<JsonElement> OnDataGenerated { get; set; }
 
-    public override string? Id { get; set; } = $"thumbmarkjs-{Guid.NewGuid():N}";
+    public override string? Id { get; set; } = BlazorIdGenerator.New("thumbmarkjs");
 
     private DotNetObjectReference<Thumbmarkjs>? _dotNetReference;
     private bool _initialized;
