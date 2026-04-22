@@ -1,20 +1,19 @@
 using Soenneker.Blazor.Thumbmarkjs.Abstract;
-using Soenneker.Tests.FixturedUnit;
-using Xunit;
+using Soenneker.Tests.HostedUnit;
 
 namespace Soenneker.Blazor.Thumbmarkjs.Tests;
 
-[Collection("Collection")]
-public sealed class ThumbmarkjsInteropTests : FixturedUnitTest
+[ClassDataSource<Host>(Shared = SharedType.PerTestSession)]
+public sealed class ThumbmarkjsInteropTests : HostedUnitTest
 {
     private readonly IThumbmarkjsInterop _blazorlibrary;
 
-    public ThumbmarkjsInteropTests(Fixture fixture, ITestOutputHelper output) : base(fixture, output)
+    public ThumbmarkjsInteropTests(Host host) : base(host)
     {
         _blazorlibrary = Resolve<IThumbmarkjsInterop>(true);
     }
 
-    [Fact]
+    [Test]
     public void Default()
     {
 
