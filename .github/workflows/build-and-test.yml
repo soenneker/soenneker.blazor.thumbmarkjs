@@ -38,7 +38,7 @@ jobs:
         run: dotnet build test/Soenneker.Blazor.Thumbmarkjs.Demo/Soenneker.Blazor.Thumbmarkjs.Demo.csproj --configuration Release --no-restore --verbosity minimal
 
       - name: Test
-        run: dotnet test test/Soenneker.Blazor.Thumbmarkjs.Demo/Soenneker.Blazor.Thumbmarkjs.Demo.csproj --configuration Release --no-build --no-restore --verbosity minimal
+        run: dotnet test --project test/Soenneker.Blazor.Thumbmarkjs.Demo/Soenneker.Blazor.Thumbmarkjs.Demo.csproj --configuration Release --no-build --no-restore --verbosity minimal
 
       - name: Pack
         run: dotnet pack src/Soenneker.Blazor.Thumbmarkjs/Soenneker.Blazor.Thumbmarkjs.csproj --configuration Release --no-build --no-restore --output . --verbosity minimal
