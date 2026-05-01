@@ -35,14 +35,6 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
         _scriptInitializer = new AsyncInitializer<bool>(InitializeScript);
     }
 
-    private static string NormalizeContentUri(string uri)
-    {
-        if (string.IsNullOrEmpty(uri) || uri.Contains("://", StringComparison.Ordinal))
-            return uri;
-
-        return uri[0] == '/' ? uri : "/" + uri;
-    }
-
     private async ValueTask InitializeScript(bool useCdn, CancellationToken cancellationToken)
     {
         if (useCdn)
@@ -51,7 +43,7 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
         }
         else
         {
-            await _resourceLoader.LoadScriptAndWaitForVariable(NormalizeContentUri(_localScript), _globalVariable, cancellationToken: cancellationToken);
+            await _resourceLoader.LoadScriptAndWaitForVariable(_localScript, _globalVariable, cancellationToken: cancellationToken);
         }
 
         _ = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
