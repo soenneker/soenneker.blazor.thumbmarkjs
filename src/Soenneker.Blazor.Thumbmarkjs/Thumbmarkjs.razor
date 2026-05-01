@@ -8,10 +8,10 @@
 @using Soenneker.Extensions.CancellationTokens
 @using Soenneker.Blazor.Utils.Ids
 
-@inherits Soenneker.Quark.CoreCancellableComponent
+@inherits Soenneker.Lepton.Suite.LeptonCancellableIdentifiableContentElement
 @implements IThumbmarkjs
 
-<div id="@Id" @attributes="Attributes"></div>
+<div id="@Id" @attributes="EffectiveAttributes"></div>
 
 @code {
     [Inject]
@@ -29,7 +29,10 @@
     [Parameter]
     public EventCallback<JsonElement> OnDataGenerated { get; set; }
 
-    public override string? Id { get; set; } = BlazorIdGenerator.New("thumbmarkjs");
+    public Thumbmarkjs()
+    {
+        Id = BlazorIdGenerator.New("thumbmarkjs");
+    }
 
     private DotNetObjectReference<Thumbmarkjs>? _dotNetReference;
     private bool _initialized;
