@@ -12,52 +12,52 @@ namespace Soenneker.Blazor.Thumbmarkjs.Abstract;
 public interface IThumbmarkjsInterop : IAsyncDisposable
 {
     /// <summary>
-    /// Executes the initialize operation.
+    /// Initializes the thumbmarkjs so it is ready for use.
     /// </summary>
-    /// <param name="dotNetReference">The dot net reference.</param>
-    /// <param name="useCdn">The use cdn.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
+    /// <param name="useCdn">Whether cdn.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the thumbmarkjs is ready for use.</returns>
     ValueTask Initialize(DotNetObjectReference<Thumbmarkjs> dotNetReference, bool useCdn = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates observer.
     /// </summary>
-    /// <param name="elementId">The element id.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="elementId">ID of the DOM element to target.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the observer creation is complete.</returns>
     ValueTask CreateObserver(string elementId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sets options.
     /// </summary>
-    /// <param name="elementId">The element id.</param>
-    /// <param name="options">The options.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="elementId">ID of the DOM element to target.</param>
+    /// <param name="options">Options to configure for the thumbmarkjs.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the options has been stored.</returns>
     ValueTask SetOptions(string elementId, object options, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the value.
+    /// Returns the configured resulting text used by the thumbmarkjs.
     /// </summary>
-    /// <param name="elementId">The element id.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="elementId">ID of the DOM element to target.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the text returned by get.</returns>
     ValueTask<string?> Get(string elementId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets data.
     /// </summary>
-    /// <param name="elementId">The element id.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task containing the result of the operation.</returns>
+    /// <param name="elementId">ID of the DOM element to target.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task whose result is the requested JSON Element.</returns>
     ValueTask<JsonElement?> GetData(string elementId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Releases resources used by the current instance.
     /// </summary>
-    /// <param name="elementId">The element id.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="elementId">ID of the DOM element to target.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the dispose operation is complete.</returns>
     ValueTask Dispose(string elementId, CancellationToken cancellationToken = default);
 }
