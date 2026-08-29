@@ -14,11 +14,12 @@ public interface IThumbmarkjsInterop : IAsyncDisposable
     /// <summary>
     /// Initializes the thumbmarkjs so it is ready for use.
     /// </summary>
+    /// <param name="elementId">ID used to isolate this component's browser state and callbacks.</param>
     /// <param name="dotNetReference">JavaScript-invokable reference to the .NET component instance.</param>
     /// <param name="useCdn">Whether cdn.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>A task that completes when the thumbmarkjs is ready for use.</returns>
-    ValueTask Initialize(DotNetObjectReference<Thumbmarkjs> dotNetReference, bool useCdn = true, CancellationToken cancellationToken = default);
+    ValueTask Initialize(string elementId, DotNetObjectReference<Thumbmarkjs> dotNetReference, bool useCdn = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates observer.

@@ -27,6 +27,7 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 
     private readonly AsyncInitializer<bool> _scriptInitializer;
     private bool _useCdn = true;
+    private bool _moduleInitialized;
 
     public ThumbmarkjsInterop(IResourceLoader resourceLoader, IModuleImportUtil moduleImportUtil)
     {
@@ -49,7 +50,8 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
         _ = await _moduleImportUtil.GetContentModuleReference(_modulePath, cancellationToken);
     }
 
-    public async ValueTask Initialize(DotNetObjectReference<Thumbmarkjs> dotNetReference, bool useCdn = true, CancellationToken cancellationToken = default)
+    public async ValueTask Initialize(string elementId, DotNetObjectReference<Thumbmarkjs> dotNetReference, bool useCdn = true,
+        CancellationToken cancellationToken = default)
     {
         _useCdn = useCdn;
 
@@ -59,7 +61,8 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
         {
             await _scriptInitializer.Init(_useCdn, linked);
             IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-            await module.InvokeVoidAsync("initialize", linked, dotNetReference);
+            _moduleInitialized = true;
+            await module.InvokeVoidAsync("initialize", linked, elementId, dotNetReference);
         }
     }
 
@@ -113,6 +116,9 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 
     public async ValueTask Dispose(string elementId, CancellationToken cancellationToken = default)
     {
+        if (!_moduleInitialized)
+            return;
+
         CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
@@ -128,8 +134,20 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
     /// <returns>A task that represents the asynchronous operation.</returns>
     public async ValueTask DisposeAsync()
     {
-        await _moduleImportUtil.DisposeContentModule(_modulePath);
-        await _scriptInitializer.DisposeAsync();
+        if (_moduleInitialized)
+        {
+            try
+            {
+                IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath);
+                await module.InvokeVoidAsync("dispose");
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+        }
+
         await _cancellationScope.DisposeAsync();
+        await _scriptInitializer.DisposeAsync();
+        await _moduleImportUtil.DisposeContentModule(_modulePath);
     }
 }

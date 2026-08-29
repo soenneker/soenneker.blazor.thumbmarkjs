@@ -48,9 +48,10 @@ public sealed class ThumbmarkjsOptions
     public int? Timeout { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether logging.
+    /// Gets or sets whether ThumbmarkJS may send sampled diagnostic fingerprint data to its logging endpoint.
+    /// Disabled by default by this wrapper.
     /// </summary>
-    public bool? Logging { get; set; }
+    public bool? Logging { get; set; } = false;
 
     /// <summary>
     /// Gets or sets a value indicating whether cache api call.

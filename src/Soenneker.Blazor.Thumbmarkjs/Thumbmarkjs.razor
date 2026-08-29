@@ -29,6 +29,9 @@
     [Parameter]
     public EventCallback<JsonElement> OnDataGenerated { get; set; }
 
+    [Parameter]
+    public EventCallback OnReady { get; set; }
+
     public Thumbmarkjs()
     {
         Id = BlazorIdGenerator.New("thumbmarkjs");
@@ -42,20 +45,35 @@
         if (!firstRender || _initialized)
             return;
 
-        _dotNetReference = DotNetObjectReference.Create(this);
+        DotNetObjectReference<Thumbmarkjs> reference = DotNetObjectReference.Create(this);
+        _dotNetReference = reference;
 
-        bool useCdn = Options?.UseCdn ?? true;
+        ThumbmarkjsOptions options = Options ?? new ThumbmarkjsOptions();
 
-        await ThumbmarkjsInterop.Initialize(_dotNetReference, useCdn);
-
-        if (Options is not null)
+        try
         {
-            await ThumbmarkjsInterop.SetOptions(Id!, Options);
+            await ThumbmarkjsInterop.Initialize(Id!, reference, options.UseCdn, CancellationToken);
+            await ThumbmarkjsInterop.SetOptions(Id!, options, CancellationToken);
+            await ThumbmarkjsInterop.CreateObserver(Id!, CancellationToken);
+        }
+        catch
+        {
+            try
+            {
+                await ThumbmarkjsInterop.Dispose(Id!);
+            }
+            catch
+            {
+                // Preserve the initialization exception; browser cleanup is best effort on this path.
+            }
+
+            reference.Dispose();
+            _dotNetReference = null;
+            throw;
         }
 
-        await ThumbmarkjsInterop.CreateObserver(Id!);
-
         _initialized = true;
+        await OnReady.InvokeIfHasDelegate();
     }
 
     [JSInvokable("OnGenerated")]
@@ -89,6 +107,9 @@
 
     public async ValueTask SetOptions(object options, CancellationToken cancellationToken = default)
     {
+        EnsureInitialized();
+        ArgumentNullException.ThrowIfNull(options);
+
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
@@ -99,6 +120,8 @@
 
     public async ValueTask<string?> Get(CancellationToken cancellationToken = default)
     {
+        EnsureInitialized();
+
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
@@ -109,12 +132,20 @@
 
     public async ValueTask<JsonElement?> GetData(CancellationToken cancellationToken = default)
     {
+        EnsureInitialized();
+
         CancellationToken linked = CancellationToken.Link(cancellationToken, out CancellationTokenSource? cts);
 
         using (cts)
         {
             return await ThumbmarkjsInterop.GetData(Id!, linked);
         }
+    }
+
+    private void EnsureInitialized()
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("ThumbmarkJS is not ready. Wait for the OnReady callback before calling this method.");
     }
 
     public override async ValueTask DisposeAsync()
@@ -135,6 +166,8 @@
         }
 
         _dotNetReference?.Dispose();
+        _dotNetReference = null;
+        _initialized = false;
 
         await base.DisposeAsync();
     }

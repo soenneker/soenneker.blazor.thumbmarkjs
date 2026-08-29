@@ -4,75 +4,120 @@
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.blazor.thumbmarkjs/codeql.yml?label=CodeQL&style=for-the-badge)](https://github.com/soenneker/soenneker.blazor.thumbmarkjs/actions/workflows/codeql.yml)
 
 # ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Blazor.Thumbmarkjs
-### A Blazor interop library for the javascript fingerprinting library, [thumbmarkjs](https://github.com/thumbmarkjs/thumbmarkjs)
 
-[Demo](https://soenneker.github.io/soenneker.blazor.thumbmarkjs)
+A Blazor component and JS interop wrapper for computing browser fingerprints with [ThumbmarkJS](https://github.com/thumbmarkjs/thumbmarkjs).
+
+[Live demo](https://soenneker.github.io/soenneker.blazor.thumbmarkjs)
+
+Browser fingerprinting has privacy, consent, and regulatory consequences. Establish a lawful purpose and gate collection behind the consent required for your users and jurisdictions before rendering or calling this component.
 
 ## Installation
 
-```
+```bash
 dotnet add package Soenneker.Blazor.Thumbmarkjs
+```
+
+Register the interop service in `Program.cs`:
+
+```csharp
+using Soenneker.Blazor.Thumbmarkjs.Registrars;
+
+builder.Services.AddThumbmarkjsInteropAsScoped();
+```
+
+Add the component namespace to `_Imports.razor`:
+
+```razor
+@using Soenneker.Blazor.Thumbmarkjs
 ```
 
 ## Usage
 
-### Basic Setup
-
-1. Register the service in your `Program.cs`:
-
-```csharp
-builder.Services.AddThumbmarkjsInteropAsScoped();
-```
-
-2. Add the component to your page or component:
+Render the component only after your application has decided fingerprinting is permitted, then wait for `OnReady` before calling it:
 
 ```razor
-<Thumbmarkjs @ref="_thumbmarkjs" OnGenerated="OnGenerated"></Thumbmarkjs>
-```
+@using Soenneker.Blazor.Thumbmarkjs.Configuration
 
-### Getting a Thumbmark (Fingerprint)
-
-```csharp
-private Thumbmarkjs _thumbmarkjs;
-
-private async Task Get()
+@if (_fingerprintingAllowed)
 {
-    string fingerprint = await _thumbmarkjs.Get();
+    <Thumbmarkjs @ref="_thumbmark"
+                 Options="_options"
+                 OnReady="HandleReady" />
+
+    <button type="button" disabled="@(!_ready)" @onclick="GenerateAsync">
+        Generate browser identifier
+    </button>
 }
 
-public void OnGenerated(string thumbmark)
+@if (_identifier is not null)
 {
-    // Handle the fingerprint when it's generated
+    <p>Identifier: @_identifier</p>
 }
 
-public void OnFingerprintDataGenerated(JsonElement data)
-{
-    // Handle the fingerprint when it's generated
-}
-```
+@code {
+    private Thumbmarkjs? _thumbmark;
+    private string? _identifier;
+    private bool _ready;
+    private bool _fingerprintingAllowed;
 
-### Getting Detailed Data
-
-```csharp
-private async Task GetData()
-{
-    JsonElement? data = await _thumbmarkjs.GetData();
-    string jsonData = data?.ToString();
-    // Use the detailed data...
-}
-```
-
-### Configuring Options
-
-```csharp
-private async Task ConfigureOptions()
-{
-    var options = new ThumbmarkjsOptions
+    private readonly ThumbmarkjsOptions _options = new()
     {
-        Exclude = ["webgl", "audio"], // Components to exclude
-        Timeout = 1000, // Timeout in milliseconds
+        Logging = false,
+        Exclude = ["audio", "permissions"]
     };
 
-    await _thumbmarkjs.SetOptions(options);
+    private void HandleReady() => _ready = true;
+
+    private async Task GenerateAsync()
+    {
+        _identifier = await _thumbmark!.Get();
+    }
 }
 ```
+
+`Get()` returns the fingerprint hash. `GetData()` returns the detailed result as a `JsonElement`, including the hash and the browser components used to derive it:
+
+```csharp
+JsonElement? result = await _thumbmark!.GetData();
+```
+
+Detailed results can contain browser, hardware, locale, screen, permission-state, canvas, audio, WebGL, WebRTC, font, and similar signals depending on the configured include/exclude lists and browser support. Avoid collecting or retaining the detailed payload unless it is genuinely required.
+
+## Caching and callbacks
+
+The first `Get()` or `GetData()` call computes a result and caches it for that component. Later calls reuse the same result. Calling `SetOptions()` replaces the options and invalidates the cached result:
+
+```csharp
+await _thumbmark!.SetOptions(new ThumbmarkjsOptions
+{
+    Logging = false,
+    Exclude = ["audio", "canvas", "webgl"]
+});
+
+string? recomputed = await _thumbmark.Get();
+```
+
+`OnGenerated` runs when either method returns a hash. `OnDataGenerated` runs only for `GetData()`. Multiple component instances keep independent options, cached results, observers, and callbacks.
+
+## Network behavior
+
+`UseCdn` controls where the ThumbmarkJS library itself is loaded from:
+
+- `true` (default) loads the pinned library from jsDelivr with subresource integrity validation;
+- `false` loads the bundled copy from this package's `_content` assets.
+
+Fingerprint computation remains local unless network-related ThumbmarkJS options are enabled or your application transmits the result:
+
+- Setting `ApiKey` causes ThumbmarkJS to post component data to `ApiEndpoint`, or to ThumbmarkJS's default API when no endpoint is supplied.
+- `CacheApiCall` and `CacheLifetimeInMs` control caching for that API response; ThumbmarkJS can use browser storage for visitor and cache data.
+- `Logging` is disabled by default by this wrapper. Explicitly enabling it permits ThumbmarkJS's sampled diagnostic logging, which can send fingerprint data to the ThumbmarkJS service.
+- `Metadata` is included in API requests when API mode is active. Do not place secrets or unnecessary personal data in it.
+
+Your Content Security Policy must permit jsDelivr when `UseCdn` is enabled and must permit any configured fingerprint API endpoint.
+
+## Reliability and security boundaries
+
+- A thumbmark is probabilistic and can change after browser, device, privacy-setting, network, or library changes. Different users can also collide.
+- Do not use a fingerprint as authentication, authorization, proof of identity, or the sole basis for blocking a user.
+- Treat it as one risk or analytics signal with documented retention and deletion rules. Hashing fingerprint components does not make the result anonymous.
+- Browser interop is unavailable during static rendering or prerendering. Call methods only after `OnReady` in an interactive render.
