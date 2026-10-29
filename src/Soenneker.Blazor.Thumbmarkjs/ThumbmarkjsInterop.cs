@@ -1,4 +1,5 @@
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Asyncs.Initializers;
 using Soenneker.Blazor.Thumbmarkjs.Abstract;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
@@ -59,17 +60,10 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 
         using (source)
         {
-            try
-            {
-                await _scriptInitializer.Init(_useCdn, linked);
-                IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-                _moduleInitialized = true;
-                await module.InvokeVoidAsync("initialize", linked, elementId, dotNetReference);
-            }
-            catch (JSException exception)
-            {
-                throw new JSException($"JavaScript operation 'ThumbmarkjsInterop.Initialize' failed: {exception.Message}", exception);
-            }
+            await _scriptInitializer.Init(_useCdn, linked);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            _moduleInitialized = true;
+            await module.InvokeVoidWithContextAsync("initialize", linked, elementId, dotNetReference);
         }
     }
 
@@ -79,16 +73,9 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 
         using (source)
         {
-            try
-            {
-                await _scriptInitializer.Init(_useCdn, linked);
-                IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-                await module.InvokeVoidAsync("createObserver", linked, elementId);
-            }
-            catch (JSException exception)
-            {
-                throw new JSException($"JavaScript operation 'ThumbmarkjsInterop.CreateObserver' failed: {exception.Message}", exception);
-            }
+            await _scriptInitializer.Init(_useCdn, linked);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            await module.InvokeVoidWithContextAsync("createObserver", linked, elementId);
         }
     }
 
@@ -98,16 +85,9 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 
         using (source)
         {
-            try
-            {
-                await _scriptInitializer.Init(_useCdn, linked);
-                IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-                await module.InvokeVoidAsync("setOptions", linked, elementId, options);
-            }
-            catch (JSException exception)
-            {
-                throw new JSException($"JavaScript operation 'ThumbmarkjsInterop.SetOptions' failed: {exception.Message}", exception);
-            }
+            await _scriptInitializer.Init(_useCdn, linked);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            await module.InvokeVoidWithContextAsync("setOptions", linked, elementId, options);
         }
     }
 
@@ -117,16 +97,9 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 
         using (source)
         {
-            try
-            {
-                await _scriptInitializer.Init(_useCdn, linked);
-                IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-                return await module.InvokeAsync<string?>("get", linked, elementId);
-            }
-            catch (JSException exception)
-            {
-                throw new JSException($"JavaScript operation 'ThumbmarkjsInterop.Get' failed: {exception.Message}", exception);
-            }
+            await _scriptInitializer.Init(_useCdn, linked);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            return await module.InvokeWithContextAsync<string?>("get", linked, elementId);
         }
     }
 
@@ -136,16 +109,9 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 
         using (source)
         {
-            try
-            {
-                await _scriptInitializer.Init(_useCdn, linked);
-                IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-                return await module.InvokeAsync<JsonElement?>("getData", linked, elementId);
-            }
-            catch (JSException exception)
-            {
-                throw new JSException($"JavaScript operation 'ThumbmarkjsInterop.GetData' failed: {exception.Message}", exception);
-            }
+            await _scriptInitializer.Init(_useCdn, linked);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            return await module.InvokeWithContextAsync<JsonElement?>("getData", linked, elementId);
         }
     }
 
@@ -158,15 +124,8 @@ public sealed class ThumbmarkjsInterop : IThumbmarkjsInterop
 
         using (source)
         {
-            try
-            {
-                IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-                await module.InvokeVoidAsync("dispose", linked, elementId);
-            }
-            catch (JSException exception)
-            {
-                throw new JSException($"JavaScript operation 'ThumbmarkjsInterop.Dispose' failed: {exception.Message}", exception);
-            }
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            await module.InvokeVoidWithContextAsync("dispose", linked, elementId);
         }
     }
 
